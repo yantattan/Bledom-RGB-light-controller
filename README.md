@@ -31,3 +31,10 @@ In the terminal at directory ./frontend, run:
 ```
 npm run dev                                                 
 ```
+
+## Opening the application
+When application is launched successfully, click on the VITE terminal link, 
+
+or go to your browser and enter the link manually. 
+
+The link should be <a href="http://localhost:5173">http://localhost:5173</a>
