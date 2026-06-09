@@ -26,7 +26,9 @@ export function useMusicEffects(colorRef) {
   // ─────────────────────────────
 
   async function openWs() {
-    return new Promise((resolve) => {
+    if (ws?.readyState === WebSocket.OPEN) return;
+
+    return new Promise(resolve => {
       const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
       ws = new WebSocket(`${proto}//${location.host}/ws`)
       ws.onopen = resolve
@@ -43,7 +45,7 @@ export function useMusicEffects(colorRef) {
   // ─────────────────────────────
 
   function sendFrame(cue) {
-    if (!ws || ws.readyState !== WebSocket.OPEN) return
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
 
     const base = cue.color ?? colorRef.value
 
@@ -72,20 +74,22 @@ export function useMusicEffects(colorRef) {
     const durationMs = audio.duration * 1000 || 1
 
     progress.value = audio.duration
-    ? audio.currentTime / audio.duration
+    ? currentMs / durationMs
     : 0
 
     const cues = song.cues;
 
-    for (let i = 0; i < cues.length; i++) {
-      while (nextCueIndex < cues.length && cues[nextCueIndex].t <= currentMs) {
-        sendFrame(cues[nextCueIndex]);
-        nextCueIndex++;
-      }
+    while (nextCueIndex < cues.length && cues[nextCueIndex].t <= currentMs) {
+      sendFrame(cues[nextCueIndex]);
+      nextCueIndex++;
     }
 
     stopRenderLoop();
     animationFrame = requestAnimationFrame(() => renderLoop(myPlaybackId));
+  }
+
+  function getNextCueIndex(song, currentMs) {
+    return song.cues.findIndex(cue => cue.t > currentMs)
   }
 
   // ─────────────────────────────
@@ -93,13 +97,14 @@ export function useMusicEffects(colorRef) {
   // ─────────────────────────────
 
   async function play(song = null) {
-    playbackId++;
-    const myPlaybackId = playbackId;
-
+    // Resume existing paused song
     if (paused.value && audio) {
+      playbackId++
+      const myPlaybackId = playbackId
+
       paused.value = false
       playing.value = true
-      
+
       await openWs()
       await audio.play()
 
@@ -110,17 +115,21 @@ export function useMusicEffects(colorRef) {
 
     await stop()
 
+    playbackId++
+    const myPlaybackId = playbackId
+
     currentSong.value = song
     audio = new Audio(song.audio)
-
-    await openWs()
 
     playing.value = true
     paused.value = false
     progress.value = 0
-    nextCueIndex = 0
 
     await audio.play()
+    nextCueIndex = getNextCueIndex(song, audio.currentTime * 1000)
+
+    await openWs()
+
     stopRenderLoop()
     renderLoop(myPlaybackId)
 
@@ -140,16 +149,17 @@ export function useMusicEffects(colorRef) {
     audio.pause()
     playbackId++;
 
-    closeWs()
     sendFrame({
       amp: 0,
       color: colorRef.value,
     })
+
+    closeWs()
     cancelAnimationFrame(animationFrame)
   }
 
   // ─────────────────────────────
-  // SEEK (FIXED)
+  // SEEK
   // ─────────────────────────────
 
   async function seek(song, pct) {
@@ -161,12 +171,12 @@ export function useMusicEffects(colorRef) {
     audio.currentTime = targetMs / 1000
 
     progress.value = targetMs / durationMs
-
-    nextCueIndex = 0
+    
+    nextCueIndex = getNextCueIndex(song, audio.currentTime * 1000)
 
     if (!paused.value) {
       stopRenderLoop()
-      renderLoop(myPlaybackId)
+      renderLoop(playbackId)
     }
   }
 

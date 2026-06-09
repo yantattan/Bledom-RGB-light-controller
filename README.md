@@ -15,7 +15,7 @@ npm install
 ```
 4. In the 2nd terminal, run:
 ```
-cd frontend
+cd backend
 pip install -r requirements.txt
 ```
 

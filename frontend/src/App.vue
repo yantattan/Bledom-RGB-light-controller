@@ -6,6 +6,7 @@ import ModePanel        from './components/ModePanel.vue'
 import { useBLE         } from './composables/useBLE.js'
 import { useAudio       } from './composables/useAudio.js'
 import { useMusicEffects } from './composables/useMusicEffects.js'
+import { usePlaylists } from './composables/usePlaylists.js'
 
 // ── Shared state ──────────────────────────────────────────
 const mode = ref('static')
@@ -14,18 +15,22 @@ const staticRgb = ref({ ...rgb.value })
 
 // ── BLE ───────────────────────────────────────────────────
 const ble = useBLE()
-onMounted(() => ble.fetchStatus())
+onMounted(async () => {
+  ble.fetchStatus();
+  await playlists.load();
+})
 
 const rgbColor = computed(() => rgb.value)
 
 // ── Composables ───────────────────────────────────────────
 const audio = useAudio(rgbColor)
 const music = useMusicEffects(rgbColor)
+const playlists = usePlaylists()
 
 // ── Mode switching ────────────────────────────────────────
 watch(mode, async (newMode, oldMode) => {
   // Tear down the previous mode
-  if (oldMode === 'sound') audio.stop()
+  if (oldMode === 'sound') await audio.stop()
   if (oldMode === 'music') await music.stop()
 
   if (newMode === 'sound') {
@@ -50,8 +55,14 @@ function onColorCommit() {
 
 // ── PWR ON / PWR OFF from DeviceBar ──────────────────────
 async function onSetColor(rgb) {
-  if (mode.value === 'sound') { audio.stop(); mode.value = 'static' }
-  if (mode.value === 'music') { await music.stop(); mode.value = 'static' }
+  if (mode.value === 'sound') { 
+    await audio.stop(); 
+    mode.value = 'static' 
+  }
+  if (mode.value === 'music') { 
+    await music.stop(); 
+    mode.value = 'static' 
+  }
   await audio.sendStatic(rgb)
 }
 
@@ -120,6 +131,7 @@ async function onMusicSeek({ song, pct }) {
           :color="rgbColor"
           :connected="ble.connected.value"
           :music="music"
+          :songs="playlists.songs.value"
           @mode-change="m => mode = m"
           @music-play="onMusicPlay"
           @music-pause="onMusicPause"

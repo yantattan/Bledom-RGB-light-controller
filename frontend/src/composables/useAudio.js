@@ -1,6 +1,6 @@
 import { ref, onUnmounted } from 'vue'
 
-const SEND_INTERVAL = 40
+const SEND_INTERVAL = 100;
 
 export function useAudio(colorRef) {
   const active    = ref(false)
@@ -15,15 +15,13 @@ export function useAudio(colorRef) {
   let lastSend = 0
 
   // ── WebSocket (sound mode only) ───────────────────────
-  function openWs() {
-    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:'
-    ws = new WebSocket(`${proto}//${location.host}/ws`)
-    ws.onopen  = () => console.log('[WS] Connected')
-    ws.onclose = () => {
-      console.log('[WS] Closed')
-      if (active.value) setTimeout(openWs, 1500)
-    }
-    ws.onerror = (e) => console.warn('[WS] Error', e)
+  async function openWs() {
+    if (ws?.readyState === WebSocket.OPEN) return;
+    return new Promise(resolve => {
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${proto}//${location.host}/ws`);
+      ws.onopen = resolve;
+    });
   }
 
   function closeWs() {
@@ -42,7 +40,7 @@ export function useAudio(colorRef) {
       analyser.fftSize               = 512
       analyser.smoothingTimeConstant = 0.75
       audioCtx.createMediaStreamSource(stream).connect(analyser)
-      openWs()
+      await openWs()
       active.value = true
       loop()
     } catch (e) {

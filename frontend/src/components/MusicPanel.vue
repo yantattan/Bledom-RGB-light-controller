@@ -1,7 +1,6 @@
 <script setup>
-import { SONGS } from '../data/songs.js'
-
 const props = defineProps({
+  songs: Array,
   music: Object,
   connected: Boolean,
 })
@@ -39,7 +38,7 @@ function seek(song, event) {
   <div class="flex flex-col gap-3">
 
     <div
-      v-for="song in SONGS"
+      v-for="song in songs"
       :key="song.id"
       class="border rounded-xl p-4"
     >

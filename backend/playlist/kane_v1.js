@@ -1,4 +1,4 @@
-import { B, H, Q, E, colors, brightnessFade, fade } from '../song_services';
+import { B, H, Q, E, colors, brightnessFade, fade } from '../song_services.js';
 
 const kaneColors = {
   orange: { r: 255, g: 25, b: 0 },
@@ -35,10 +35,9 @@ function flameEffect() {
   song.cues.push({ t: timestamp + H, amp: 0.5, color: kaneColors.orange });
   timestamp += 5*B;
   song.cues.push(...fade(timestamp, kaneColors.orange, 0.5, kaneColors.yellow, 1, 3*B));
-  song.cues.push({ t: timestamp + (3*B), amp: 1, color: kaneColors.yellow });
+  
   timestamp += 6*B;
   song.cues.push(...fade(timestamp, kaneColors.yellow, 1, colors.red, 0.3, B + H));
-  song.cues.push({ t: timestamp + B + H, amp: 0.3, color: colors.red });
   timestamp += 6*B;
   song.cues.push(...fade(timestamp, colors.red, 0.4, kaneColors.orange, 0.5, B));
   timestamp += B;

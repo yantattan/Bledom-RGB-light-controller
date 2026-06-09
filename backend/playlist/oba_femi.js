@@ -1,4 +1,4 @@
-import { B, H, Q, E, colors, brightnessFade, fade } from './../song_services';
+import { B, H, Q, E, colors, brightnessFade, fade } from './../song_services.js';
 
 const obaColors = {
   green: { r: 140, g: 255, b: 0 }
@@ -65,15 +65,15 @@ timestamp += 10*B;
 // Revealing
 song.cues.push({ t: timestamp, amp: 0, color: colors.white });
 timestamp += B;
-song.cues.push(...fade(timestamp, colors.white, 0, colors.white, 0.1, 3*B));
-timestamp += 3*B;
+song.cues.push(...fade(timestamp, colors.white, 0, colors.white, 0.1, 6*B));
+timestamp += 6*B;
 // Silhouette
 song.cues.push(...fade(timestamp, colors.white, 0.1, colors.white, 0.05, B + H + Q));
 timestamp += B + H + Q;
 song.cues.push(...fade(timestamp, colors.white, 0.05, colors.white, 0.2, 3*B + H));
 timestamp += 3*B + H
-song.cues.push(...fade(timestamp, colors.white, 0.2, { r: 165, g: 173, b: 255 }, 1.0, 4*B));
-timestamp += 4*B;
+song.cues.push(...fade(timestamp, colors.white, 0.2, { r: 165, g: 173, b: 255 }, 1.0, 4*B + H));
+timestamp += 4*B + H;
 
 // Entry flash
 timestamp += B + Q;
@@ -85,7 +85,7 @@ song.cues.push(...[
 
 // Walk to stage
 timestamp += B + H;
-for (let i=0; i<15; i++) {
+for (let i=0; i<14; i++) {
   song.cues.push(...[
     { t: timestamp + (B + E), amp: 1.0 },
     { t: timestamp + (2*B + Q), amp: 0.4 },
@@ -101,6 +101,16 @@ for (let i=0; i<15; i++) {
   ]);
   timestamp += 9*B;
 }
+
+// Half more sequence
+song.cues.push(...[
+  { t: timestamp + (B + E), amp: 1.0 },
+  { t: timestamp + (2*B + Q), amp: 0.4 },
+
+  { t: timestamp + (3*B + Q + E), amp: 1.0 },
+  { t: timestamp + (4*B + H), amp: 0.6 }
+]);
+timestamp += 4*B + H;
 
 // End change
 timestamp += B;

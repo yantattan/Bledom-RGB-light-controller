@@ -10,6 +10,10 @@ const props = defineProps({
   color:       { type: Object,  default: () => ({ r: 255, g: 255, b: 255 }) },
   connected:   { type: Boolean, default: false },
   music:       { type: Object,  required: true },
+  songs: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const emit = defineEmits(['mode-change', 'music-play', 'music-pause', 'music-seek'])
@@ -179,6 +183,7 @@ const MODES = [
     <!-- ── MUSIC (Light Show) panel ───────────────────── -->
     <MusicPanel
       v-if="mode === 'music'"
+      :songs="songs"
       :music="music"
       :connected="connected"
       @play="s => emit('music-play', s)"

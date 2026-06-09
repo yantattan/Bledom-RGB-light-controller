@@ -53,6 +53,8 @@ function fade(timestamp, colorStart, ampStart, colorEnd, ampEnd, duration) {
     cues.push({t, color: { r, g, b }, amp });
   }
 
+  cues.push({ t: timestamp + duration, amp: ampEnd, color: colorEnd });
+
   return cues;
 }
 

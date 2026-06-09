@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 import json
 import os
 from ble_controller import BLEController
+from playlist_store import list_playlists, get_playlist
 
 ble = BLEController()
 
@@ -72,6 +73,22 @@ async def set_color(body: dict):
     return {"success": ok}
 
 
+# Playlist retrieval
+
+@app.get("/api/playlists")
+async def playlists():
+    return list_playlists()
+
+@app.get("/api/playlists/{song_id}")
+async def playlist(song_id: str):
+    data = get_playlist(song_id)
+
+    if not data:
+        return {"error": "Song not found"}
+
+    return data
+
+
 # ── WebSocket: Audio → Light ─────────────────────────────────────────────────
 
 @app.websocket("/ws")
@@ -90,9 +107,9 @@ async def websocket_audio(websocket: WebSocket):
             amplitude: float = float(payload.get("amplitude", 0.0))
             color: dict = payload.get("color", {"r": 255, "g": 255, "b": 255})
 
-            r = int(color["r"] * amplitude)
-            g = int(color["g"] * amplitude)
-            b = int(color["b"] * amplitude)
+            r = int(max(0, min(255, color["r"] * amplitude)))
+            g = int(max(0, min(255, color["g"] * amplitude)))
+            b = int(max(0, min(255, color["b"] * amplitude)))
 
             if ble.is_connected:
                 await ble.set_color(r, g, b)
